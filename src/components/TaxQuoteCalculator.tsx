@@ -41,7 +41,7 @@ const stateFeeMap = { "0": 0, "1": 250, "2-5": 650, "6-9": 1450, "10+": 2050 };
 const k1FeeMap = { "0": 0, "1": 200, "2-5": 600, "6-14": 2000, "15+": 3000 };
 
 export function TaxQuoteCalculator() {
-  const [step, setStep] = useState(1);
+  const [showQuote, setShowQuote] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -53,16 +53,30 @@ export function TaxQuoteCalculator() {
   const [quote, setQuote] = useState<QuoteResult | null>(null);
   const { toast } = useToast();
 
-  const validateStep1 = () => {
+  const validateForm = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return formData.name.trim() && emailRegex.test(formData.email);
-  };
-
-  const validateStep2 = () => {
-    return formData.filing && formData.home;
+    if (!formData.name.trim() || !emailRegex.test(formData.email)) {
+      toast({
+        title: "Required Fields Missing",
+        description: "Please provide your name and a valid email address.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!formData.filing || !formData.home) {
+      toast({
+        title: "Please Complete All Fields",
+        description: "Filing status and home ownership are required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
   };
 
   const calculateQuote = () => {
+    if (!validateForm()) return;
+
     const base = 350;
     const k1Value = k1Options[formData.k1Forms];
     const stateValue = stateOptions[formData.states];
@@ -77,40 +91,16 @@ export function TaxQuoteCalculator() {
     const total = breakdown.base + breakdown.state + breakdown.k1 + breakdown.home;
     
     setQuote({ total, breakdown });
-    setStep(4);
+    setShowQuote(true);
     
     toast({
       title: "Quote Generated! 🎉",
-      description: "Your personalized tax quote is ready."
+      description: "Your 1040 pricing estimate is ready."
     });
   };
 
-  const nextStep = () => {
-    if (step === 1 && !validateStep1()) {
-      toast({
-        title: "Please complete all fields",
-        description: "Name and valid email are required.",
-        variant: "destructive"
-      });
-      return;
-    }
-    if (step === 2 && !validateStep2()) {
-      toast({
-        title: "Please make your selections",
-        description: "Filing status and home ownership are required.",
-        variant: "destructive"
-      });
-      return;
-    }
-    if (step === 3) {
-      calculateQuote();
-      return;
-    }
-    setStep(step + 1);
-  };
-
   const resetCalculator = () => {
-    setStep(1);
+    setShowQuote(false);
     setFormData({
       name: "",
       email: "",
@@ -122,27 +112,6 @@ export function TaxQuoteCalculator() {
     setQuote(null);
   };
 
-  const ProgressBar = () => (
-    <div className="flex items-center justify-center mb-8">
-      <div className="flex items-center space-x-4">
-        {[1, 2, 3, 4].map((stepNum) => (
-          <div key={stepNum} className="flex items-center">
-            <div className={`progress-step ${
-              stepNum < step ? 'completed' : 
-              stepNum === step ? 'active' : 'pending'
-            }`}>
-              {stepNum < step && <CheckCircle2 className="w-2 h-2 text-success-foreground" />}
-            </div>
-            {stepNum < 4 && (
-              <div className={`w-8 h-0.5 mx-2 transition-colors duration-300 ${
-                stepNum < step ? 'bg-success' : 'bg-border'
-              }`} />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-6">
@@ -155,28 +124,20 @@ export function TaxQuoteCalculator() {
                 <Calculator className="w-8 h-8 text-primary-foreground" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                Enterprise Tax Calculator
+                1040 Pricing Estimator
               </h1>
             </div>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Professional-grade tax estimation with precision accuracy
+              Get an estimate for your tax return preparation costs
             </p>
           </div>
 
-          <ProgressBar />
-
-          {/* Step 1: Personal Information */}
-          {step === 1 && (
+          {/* Input Form */}
+          {!showQuote && (
             <div className="space-y-8 animate-slide-up">
-              <div className="text-center mb-8">
-                <Trophy className="w-12 h-12 text-warning mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold mb-2">Personal Details</h2>
-                <p className="text-muted-foreground">Let's start with your basic information</p>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-semibold">Full Name</Label>
+                  <Label htmlFor="name" className="text-sm font-semibold">Full Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -186,7 +147,7 @@ export function TaxQuoteCalculator() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
+                  <Label htmlFor="email" className="text-sm font-semibold">Email Address *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -196,17 +157,6 @@ export function TaxQuoteCalculator() {
                     className="h-12 text-lg"
                   />
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Filing Details */}
-          {step === 2 && (
-            <div className="space-y-8 animate-slide-up">
-              <div className="text-center mb-8">
-                <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold mb-2">Filing Information</h2>
-                <p className="text-muted-foreground">Select your filing status and home ownership</p>
               </div>
 
               <div className="space-y-8">
@@ -229,7 +179,7 @@ export function TaxQuoteCalculator() {
                 </div>
 
                 <div>
-                  <Label className="text-lg font-semibold mb-4 block">Home Ownership</Label>
+                  <Label className="text-lg font-semibold mb-4 block">Do you own your home?</Label>
                   <RadioGroup
                     value={formData.home}
                     onValueChange={(value) => setFormData({...formData, home: value})}
@@ -239,81 +189,71 @@ export function TaxQuoteCalculator() {
                       <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
                         <RadioGroupItem value={option} id={`home-${option}`} />
                         <Label htmlFor={`home-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
-                          {option === "Yes" ? "I own my home" : "I rent/other"}
+                          {option === "Yes" ? "Yes, I own my home" : "No, I rent or other"}
                         </Label>
                       </div>
                     ))}
                   </RadioGroup>
                 </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <Label className="text-lg font-semibold">
+                      K-1 Forms: <span className="text-primary font-bold">{k1Options[formData.k1Forms]}</span>
+                    </Label>
+                    <div className="px-3">
+                      <Slider
+                        value={[formData.k1Forms]}
+                        onValueChange={(value) => setFormData({...formData, k1Forms: value[0]})}
+                        max={4}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>None</span>
+                      <span>15+</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-lg font-semibold">
+                      States Filing: <span className="text-primary font-bold">{stateOptions[formData.states]}</span>
+                    </Label>
+                    <div className="px-3">
+                      <Slider
+                        value={[formData.states]}
+                        onValueChange={(value) => setFormData({...formData, states: value[0]})}
+                        max={4}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>None</span>
+                      <span>10+</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center mt-12">
+                <Button onClick={calculateQuote} className="btn-enterprise px-12 py-4 text-lg">
+                  <Calculator className="w-5 h-5 mr-2" />
+                  Calculate My Quote
+                </Button>
               </div>
             </div>
           )}
 
-          {/* Step 3: Advanced Options */}
-          {step === 3 && (
-            <div className="space-y-8 animate-slide-up">
-              <div className="text-center mb-8">
-                <Zap className="w-12 h-12 text-success mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold mb-2">Complexity Factors</h2>
-                <p className="text-muted-foreground">Adjust these based on your tax situation</p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <Label className="text-lg font-semibold">
-                    K-1 Forms: <span className="text-primary font-bold">{k1Options[formData.k1Forms]}</span>
-                  </Label>
-                  <div className="px-3">
-                    <Slider
-                      value={[formData.k1Forms]}
-                      onValueChange={(value) => setFormData({...formData, k1Forms: value[0]})}
-                      max={4}
-                      step={1}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>None</span>
-                    <span>15+</span>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <Label className="text-lg font-semibold">
-                    States Filing: <span className="text-primary font-bold">{stateOptions[formData.states]}</span>
-                  </Label>
-                  <div className="px-3">
-                    <Slider
-                      value={[formData.states]}
-                      onValueChange={(value) => setFormData({...formData, states: value[0]})}
-                      max={4}
-                      step={1}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>None</span>
-                    <span>10+</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Quote Results */}
-          {step === 4 && quote && (
+          {/* Quote Results */}
+          {showQuote && quote && (
             <div className="text-center space-y-8 animate-slide-up">
-              <div className="text-center mb-8">
-                <TrendingUp className="w-12 h-12 text-success mx-auto mb-4" />
-                <h2 className="text-2xl font-semibold mb-2">Your Enterprise Quote</h2>
-                <p className="text-muted-foreground">Professional tax preparation estimate</p>
-              </div>
-
               <div className="bg-gradient-success text-success-foreground rounded-2xl p-8 mb-8">
                 <div className="text-5xl font-bold mb-2 animate-bounce-gentle">
                   ${quote.total.toLocaleString()}
                 </div>
-                <p className="text-xl opacity-90">Total Estimated Cost</p>
+                <p className="text-xl opacity-90">Your 1040 Preparation Cost</p>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -336,31 +276,14 @@ export function TaxQuoteCalculator() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button className="btn-success">
+                <Button className="btn-success px-8 py-3">
                   <CheckCircle2 className="w-5 h-5 mr-2" />
                   Accept Quote & Continue
                 </Button>
-                <Button variant="outline" onClick={resetCalculator}>
+                <Button variant="outline" onClick={resetCalculator} className="px-8 py-3">
                   Calculate New Quote
                 </Button>
               </div>
-            </div>
-          )}
-
-          {/* Navigation */}
-          {step < 4 && (
-            <div className="flex justify-between mt-12">
-              <Button
-                variant="outline"
-                onClick={() => setStep(Math.max(1, step - 1))}
-                disabled={step === 1}
-              >
-                Previous
-              </Button>
-              <Button onClick={nextStep} className="btn-enterprise">
-                {step === 3 ? "Calculate Quote" : "Continue"}
-                <Zap className="w-4 h-4 ml-2" />
-              </Button>
             </div>
           )}
         </CardContent>
