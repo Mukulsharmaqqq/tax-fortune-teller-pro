@@ -125,10 +125,31 @@ export function TaxQuoteCalculator() {
     setQuote({ total, breakdown });
     setShowQuote(true);
     
+    // Send webhook
+    fetch("YOUR_WEBHOOK_URL", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        total: total
+      }),
+    }).catch(() => {}); // Silent fail
+    
     toast({
       title: "Quote Generated! 🎉",
       description: "Your 1040 pricing estimate is ready."
     });
+  };
+
+  const handleAcceptQuote = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookingUrl = urlParams.get('booking');
+    if (bookingUrl) {
+      window.open(bookingUrl, '_blank');
+    }
   };
 
   const resetCalculator = () => {
@@ -420,7 +441,7 @@ export function TaxQuoteCalculator() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button className="btn-success px-8 py-3">
+                <Button onClick={handleAcceptQuote} className="btn-success px-8 py-3">
                   <CheckCircle2 className="w-5 h-5 mr-2" />
                   Accept Quote & Continue
                 </Button>
