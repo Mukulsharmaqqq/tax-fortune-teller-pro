@@ -124,6 +124,29 @@ export function TaxQuoteCalculator() {
     
     setQuote({ total, breakdown });
     setShowQuote(true);
+    const leadEmail = new URLSearchParams(window.location.search).get("sendto");
+if (leadEmail) {
+  fetch(`https://formsubmit.co/ajax/${leadEmail}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name:   formData.name,
+      email:  formData.email,
+      quote:  total,
+      filing: formData.filing,
+      deduction: formData.deduction,
+      scheduleC: formData.scheduleC,
+      scheduleD: formData.scheduleD,
+      scheduleE: formData.scheduleE,
+      k1Forms: formData.k1Forms,
+      states:  formData.states,
+      foreignIncome: formData.foreignIncome
+    })
+  });
+}
     
     // Send webhook
     fetch("YOUR_WEBHOOK_URL", {
