@@ -12,33 +12,48 @@ interface FormData {
   name: string;
   email: string;
   filing: string;
-  home: string;
+  deduction: string;
+  scheduleC: string;
+  scheduleCIncome: string;
+  scheduleD: string;
+  scheduleE: string;
   k1Forms: number;
   states: number;
+  foreignIncome: string;
 }
 
 interface QuoteResult {
   total: number;
   breakdown: {
     base: number;
-    state: number;
+    scheduleC: number;
+    scheduleD: number;
+    scheduleE: number;
     k1: number;
-    home: number;
+    states: number;
+    foreignIncome: string;
   };
 }
 
 const filingStatuses = [
   "Single",
-  "Head of Household", 
-  "Married Filing Jointly",
-  "Married Filing Separately"
+  "Married Filing Separate", 
+  "Married Filing Jointly"
 ];
 
-const k1Options = ["0", "1", "2-5", "6-14", "15+"];
-const stateOptions = ["0", "1", "2-5", "6-9", "10+"];
+const deductionTypes = [
+  "Standard",
+  "Itemized"
+];
 
-const stateFeeMap = { "0": 0, "1": 250, "2-5": 650, "6-9": 1450, "10+": 2050 };
-const k1FeeMap = { "0": 0, "1": 200, "2-5": 600, "6-14": 2000, "15+": 3000 };
+const baseFeeMap = {
+  "Single + Standard": 300,
+  "Married Filing Separate + Standard": 300,
+  "Married Filing Jointly + Standard": 350,
+  "Single + Itemized": 350,
+  "Married Filing Separate + Itemized": 350,
+  "Married Filing Jointly + Itemized": 400
+};
 
 export function TaxQuoteCalculator() {
   const [showQuote, setShowQuote] = useState(false);
@@ -46,9 +61,14 @@ export function TaxQuoteCalculator() {
     name: "",
     email: "",
     filing: "",
-    home: "",
+    deduction: "",
+    scheduleC: "",
+    scheduleCIncome: "",
+    scheduleD: "",
+    scheduleE: "",
     k1Forms: 0,
-    states: 0
+    states: 1,
+    foreignIncome: ""
   });
   const [quote, setQuote] = useState<QuoteResult | null>(null);
   const { toast } = useToast();
@@ -63,10 +83,10 @@ export function TaxQuoteCalculator() {
       });
       return false;
     }
-    if (!formData.filing || !formData.home) {
+    if (!formData.filing || !formData.deduction) {
       toast({
         title: "Please Complete All Fields",
-        description: "Filing status and home ownership are required.",
+        description: "Filing status and deduction type are required.",
         variant: "destructive"
       });
       return false;
@@ -77,18 +97,30 @@ export function TaxQuoteCalculator() {
   const calculateQuote = () => {
     if (!validateForm()) return;
 
-    const base = 350;
-    const k1Value = k1Options[formData.k1Forms];
-    const stateValue = stateOptions[formData.states];
+    const baseKey = `${formData.filing} + ${formData.deduction}` as keyof typeof baseFeeMap;
+    const base = baseFeeMap[baseKey];
+    
+    const scheduleC = formData.scheduleC === "No" ? 0 : 
+      formData.scheduleCIncome === "< $250,000" ? 50 : 100;
+    
+    const scheduleD = formData.scheduleD === "Yes" ? 50 : 0;
+    const scheduleE = formData.scheduleE === "Yes" ? 50 : 0;
+    const k1 = formData.k1Forms * 100;
+    const states = (formData.states - 1) * 100;
+    const foreignIncome = formData.foreignIncome === "Yes" ? "Call for quote" : "";
     
     const breakdown = {
       base,
-      state: stateFeeMap[stateValue as keyof typeof stateFeeMap],
-      k1: k1FeeMap[k1Value as keyof typeof k1FeeMap],
-      home: formData.home === "Yes" ? 150 : 0
+      scheduleC,
+      scheduleD,
+      scheduleE,
+      k1,
+      states,
+      foreignIncome
     };
 
-    const total = breakdown.base + breakdown.state + breakdown.k1 + breakdown.home;
+    const total = breakdown.base + breakdown.scheduleC + breakdown.scheduleD + 
+                 breakdown.scheduleE + breakdown.k1 + breakdown.states;
     
     setQuote({ total, breakdown });
     setShowQuote(true);
@@ -105,9 +137,14 @@ export function TaxQuoteCalculator() {
       name: "",
       email: "",
       filing: "",
-      home: "",
+      deduction: "",
+      scheduleC: "",
+      scheduleCIncome: "",
+      scheduleD: "",
+      scheduleE: "",
       k1Forms: 0,
-      states: 0
+      states: 1,
+      foreignIncome: ""
     });
     setQuote(null);
   };
@@ -179,17 +216,91 @@ export function TaxQuoteCalculator() {
                 </div>
 
                 <div>
-                  <Label className="text-lg font-semibold mb-4 block">Do you own your home?</Label>
+                  <Label className="text-lg font-semibold mb-4 block">Deduction Type</Label>
                   <RadioGroup
-                    value={formData.home}
-                    onValueChange={(value) => setFormData({...formData, home: value})}
+                    value={formData.deduction}
+                    onValueChange={(value) => setFormData({...formData, deduction: value})}
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    {deductionTypes.map((type) => (
+                      <div key={type} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                        <RadioGroupItem value={type} id={`deduction-${type}`} />
+                        <Label htmlFor={`deduction-${type}`} className="flex-1 cursor-pointer text-sm font-medium">
+                          {type} Deduction
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+
+                <div>
+                  <Label className="text-lg font-semibold mb-4 block">Schedule C - Business Income</Label>
+                  <RadioGroup
+                    value={formData.scheduleC}
+                    onValueChange={(value) => setFormData({...formData, scheduleC: value})}
                     className="grid grid-cols-2 gap-4"
                   >
                     {["Yes", "No"].map((option) => (
                       <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
-                        <RadioGroupItem value={option} id={`home-${option}`} />
-                        <Label htmlFor={`home-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
-                          {option === "Yes" ? "Yes, I own my home" : "No, I rent or other"}
+                        <RadioGroupItem value={option} id={`scheduleC-${option}`} />
+                        <Label htmlFor={`scheduleC-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
+                          {option === "Yes" ? "Yes, I have business income" : "No business income"}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                  
+                  {formData.scheduleC === "Yes" && (
+                    <div className="mt-4">
+                      <Label className="text-sm font-semibold mb-2 block">Business Income Level</Label>
+                      <RadioGroup
+                        value={formData.scheduleCIncome}
+                        onValueChange={(value) => setFormData({...formData, scheduleCIncome: value})}
+                        className="grid grid-cols-2 gap-4"
+                      >
+                        {["< $250,000", "≥ $250,000"].map((level) => (
+                          <div key={level} className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-accent transition-colors">
+                            <RadioGroupItem value={level} id={`income-${level}`} />
+                            <Label htmlFor={`income-${level}`} className="flex-1 cursor-pointer text-sm">
+                              {level}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-lg font-semibold mb-4 block">Schedule D - Capital Gains/Losses</Label>
+                  <RadioGroup
+                    value={formData.scheduleD}
+                    onValueChange={(value) => setFormData({...formData, scheduleD: value})}
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    {["Yes", "No"].map((option) => (
+                      <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                        <RadioGroupItem value={option} id={`scheduleD-${option}`} />
+                        <Label htmlFor={`scheduleD-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
+                          {option === "Yes" ? "Yes, I have capital gains/losses" : "No capital gains/losses"}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+
+                <div>
+                  <Label className="text-lg font-semibold mb-4 block">Schedule E - Rental Income</Label>
+                  <RadioGroup
+                    value={formData.scheduleE}
+                    onValueChange={(value) => setFormData({...formData, scheduleE: value})}
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    {["Yes", "No"].map((option) => (
+                      <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                        <RadioGroupItem value={option} id={`scheduleE-${option}`} />
+                        <Label htmlFor={`scheduleE-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
+                          {option === "Yes" ? "Yes, I have rental income" : "No rental income"}
                         </Label>
                       </div>
                     ))}
@@ -199,41 +310,60 @@ export function TaxQuoteCalculator() {
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold">
-                      K-1 Forms: <span className="text-primary font-bold">{k1Options[formData.k1Forms]}</span>
+                      K-1 Forms: <span className="text-primary font-bold">{formData.k1Forms}</span>
                     </Label>
                     <div className="px-3">
                       <Slider
                         value={[formData.k1Forms]}
                         onValueChange={(value) => setFormData({...formData, k1Forms: value[0]})}
-                        max={4}
+                        max={20}
                         step={1}
                         className="w-full"
                       />
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>None</span>
-                      <span>15+</span>
+                      <span>0</span>
+                      <span>20+</span>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold">
-                      States Filing: <span className="text-primary font-bold">{stateOptions[formData.states]}</span>
+                      Total States: <span className="text-primary font-bold">{formData.states}</span>
                     </Label>
                     <div className="px-3">
                       <Slider
                         value={[formData.states]}
                         onValueChange={(value) => setFormData({...formData, states: value[0]})}
-                        max={4}
+                        min={1}
+                        max={10}
                         step={1}
                         className="w-full"
                       />
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>None</span>
+                      <span>1</span>
                       <span>10+</span>
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <Label className="text-lg font-semibold mb-4 block">Foreign Income</Label>
+                  <RadioGroup
+                    value={formData.foreignIncome}
+                    onValueChange={(value) => setFormData({...formData, foreignIncome: value})}
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    {["Yes", "No"].map((option) => (
+                      <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                        <RadioGroupItem value={option} id={`foreign-${option}`} />
+                        <Label htmlFor={`foreign-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
+                          {option === "Yes" ? "Yes, I have foreign income" : "No foreign income"}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
                 </div>
               </div>
 
@@ -256,23 +386,37 @@ export function TaxQuoteCalculator() {
                 <p className="text-xl opacity-90">Your 1040 Preparation Cost</p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-card rounded-xl p-4 border border-border">
                   <div className="text-2xl font-bold text-primary">${quote.breakdown.base}</div>
-                  <div className="text-sm text-muted-foreground">Base Service</div>
+                  <div className="text-sm text-muted-foreground">Base Filing</div>
                 </div>
                 <div className="bg-card rounded-xl p-4 border border-border">
-                  <div className="text-2xl font-bold text-primary">${quote.breakdown.state}</div>
-                  <div className="text-sm text-muted-foreground">State Filing</div>
+                  <div className="text-2xl font-bold text-primary">${quote.breakdown.scheduleC}</div>
+                  <div className="text-sm text-muted-foreground">Schedule C</div>
+                </div>
+                <div className="bg-card rounded-xl p-4 border border-border">
+                  <div className="text-2xl font-bold text-primary">${quote.breakdown.scheduleD}</div>
+                  <div className="text-sm text-muted-foreground">Schedule D</div>
+                </div>
+                <div className="bg-card rounded-xl p-4 border border-border">
+                  <div className="text-2xl font-bold text-primary">${quote.breakdown.scheduleE}</div>
+                  <div className="text-sm text-muted-foreground">Schedule E</div>
                 </div>
                 <div className="bg-card rounded-xl p-4 border border-border">
                   <div className="text-2xl font-bold text-primary">${quote.breakdown.k1}</div>
                   <div className="text-sm text-muted-foreground">K-1 Forms</div>
                 </div>
                 <div className="bg-card rounded-xl p-4 border border-border">
-                  <div className="text-2xl font-bold text-primary">${quote.breakdown.home}</div>
-                  <div className="text-sm text-muted-foreground">Home Owner</div>
+                  <div className="text-2xl font-bold text-primary">${quote.breakdown.states}</div>
+                  <div className="text-sm text-muted-foreground">Additional States</div>
                 </div>
+                {quote.breakdown.foreignIncome && (
+                  <div className="bg-card rounded-xl p-4 border border-border col-span-full">
+                    <div className="text-lg font-bold text-orange-600">{quote.breakdown.foreignIncome}</div>
+                    <div className="text-sm text-muted-foreground">Foreign Income</div>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
