@@ -413,7 +413,7 @@ export function TaxQuoteCalculator() {
                 </div>
                 {quote.breakdown.foreignIncome && (
                   <div className="bg-card rounded-xl p-4 border border-border col-span-full">
-                    <div className="text-lg font-bold text-amber-600">Pricing determined during consultation</div>
+                    <div className="text-lg font-bold text-amber-600"> Discussed Over Call</div>
                     <div className="text-sm text-muted-foreground">Foreign Income</div>
                   </div>
                 )}
