@@ -107,7 +107,7 @@ export function TaxQuoteCalculator() {
     const scheduleE = formData.scheduleE === "Yes" ? 50 : 0;
     const k1 = formData.k1Forms * 100;
     const states = (formData.states - 1) * 100;
-    const foreignIncome = formData.foreignIncome === "Yes" ? "Call for quote" : "";
+    const foreignIncome = formData.foreignIncome === "Yes" ? "Discussed during consultation" : "";
     
     const breakdown = {
       base,
@@ -310,7 +310,7 @@ export function TaxQuoteCalculator() {
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold">
-                      K-1 Forms: <span className="text-primary font-bold">{formData.k1Forms}</span>
+                      K-1 Forms: <span className="text-primary font-bold">{formData.k1Forms === 20 ? '20+' : formData.k1Forms}</span>
                     </Label>
                     <div className="px-3">
                       <Slider
@@ -329,7 +329,7 @@ export function TaxQuoteCalculator() {
 
                   <div className="space-y-4">
                     <Label className="text-lg font-semibold">
-                      Total States: <span className="text-primary font-bold">{formData.states}</span>
+                      Total States: <span className="text-primary font-bold">{formData.states === 10 ? '10+' : formData.states}</span>
                     </Label>
                     <div className="px-3">
                       <Slider
@@ -405,15 +405,15 @@ export function TaxQuoteCalculator() {
                 </div>
                 <div className="bg-card rounded-xl p-4 border border-border">
                   <div className="text-2xl font-bold text-primary">${quote.breakdown.k1}</div>
-                  <div className="text-sm text-muted-foreground">K-1 Forms</div>
+                  <div className="text-sm text-muted-foreground">K-1 Forms ({formData.k1Forms === 20 ? '20+' : formData.k1Forms})</div>
                 </div>
                 <div className="bg-card rounded-xl p-4 border border-border">
                   <div className="text-2xl font-bold text-primary">${quote.breakdown.states}</div>
-                  <div className="text-sm text-muted-foreground">Additional States</div>
+                  <div className="text-sm text-muted-foreground">Additional States ({formData.states === 10 ? '10+' : formData.states - 1})</div>
                 </div>
                 {quote.breakdown.foreignIncome && (
                   <div className="bg-card rounded-xl p-4 border border-border col-span-full">
-                    <div className="text-lg font-bold text-orange-600">{quote.breakdown.foreignIncome}</div>
+                    <div className="text-lg font-bold text-amber-600">Pricing determined during consultation</div>
                     <div className="text-sm text-muted-foreground">Foreign Income</div>
                   </div>
                 )}
