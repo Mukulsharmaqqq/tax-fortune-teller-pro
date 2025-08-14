@@ -240,18 +240,18 @@ if (leadEmail) {
                 </div>
               </div>
 
-              <div className="space-y-8">
+                  <div className="space-y-8">
                 <div>
                   <Label className="text-lg font-semibold mb-4 block">Filing Status</Label>
                   <RadioGroup
                     value={formData.filing}
                     onValueChange={(value) => setFormData({...formData, filing: value})}
-                    className="grid sm:grid-cols-2 gap-4"
+                    className="grid gap-3 sm:grid-cols-2"
                   >
                     {filingStatuses.map((status) => (
-                      <div key={status} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                      <div key={status} className="flex items-center space-x-3 p-3 sm:p-4 rounded-xl border border-border hover:bg-accent transition-colors">
                         <RadioGroupItem value={status} id={status} />
-                        <Label htmlFor={status} className="flex-1 cursor-pointer text-sm font-medium">
+                        <Label htmlFor={status} className="flex-1 cursor-pointer text-sm font-medium leading-relaxed">
                           {status}
                         </Label>
                       </div>
@@ -264,12 +264,12 @@ if (leadEmail) {
                   <RadioGroup
                     value={formData.deduction}
                     onValueChange={(value) => setFormData({...formData, deduction: value})}
-                    className="grid grid-cols-2 gap-4"
+                    className="grid gap-3 sm:grid-cols-2"
                   >
                     {deductionTypes.map((type) => (
-                      <div key={type} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                      <div key={type} className="flex items-center space-x-3 p-3 sm:p-4 rounded-xl border border-border hover:bg-accent transition-colors">
                         <RadioGroupItem value={type} id={`deduction-${type}`} />
-                        <Label htmlFor={`deduction-${type}`} className="flex-1 cursor-pointer text-sm font-medium">
+                        <Label htmlFor={`deduction-${type}`} className="flex-1 cursor-pointer text-sm font-medium leading-relaxed">
                           {type} Deduction
                         </Label>
                       </div>
@@ -282,12 +282,12 @@ if (leadEmail) {
                   <RadioGroup
                     value={formData.scheduleC}
                     onValueChange={(value) => setFormData({...formData, scheduleC: value})}
-                    className="grid grid-cols-2 gap-4"
+                    className="grid gap-3"
                   >
                     {["Yes", "No"].map((option) => (
-                      <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
-                        <RadioGroupItem value={option} id={`scheduleC-${option}`} />
-                        <Label htmlFor={`scheduleC-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
+                      <div key={option} className="flex items-start space-x-3 p-3 sm:p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                        <RadioGroupItem value={option} id={`scheduleC-${option}`} className="mt-0.5" />
+                        <Label htmlFor={`scheduleC-${option}`} className="flex-1 cursor-pointer text-sm font-medium leading-relaxed">
                           {option === "Yes" ? "Yes, I have business income" : "No business income"}
                         </Label>
                       </div>
@@ -300,12 +300,12 @@ if (leadEmail) {
                       <RadioGroup
                         value={formData.scheduleCIncome}
                         onValueChange={(value) => setFormData({...formData, scheduleCIncome: value})}
-                        className="grid grid-cols-2 gap-4"
+                        className="grid gap-3 sm:grid-cols-2"
                       >
                         {["< $250,000", "≥ $250,000"].map((level) => (
                           <div key={level} className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-accent transition-colors">
                             <RadioGroupItem value={level} id={`income-${level}`} />
-                            <Label htmlFor={`income-${level}`} className="flex-1 cursor-pointer text-sm">
+                            <Label htmlFor={`income-${level}`} className="flex-1 cursor-pointer text-sm leading-relaxed">
                               {level}
                             </Label>
                           </div>
@@ -320,12 +320,12 @@ if (leadEmail) {
                   <RadioGroup
                     value={formData.scheduleD}
                     onValueChange={(value) => setFormData({...formData, scheduleD: value})}
-                    className="grid grid-cols-2 gap-4"
+                    className="grid gap-3"
                   >
                     {["Yes", "No"].map((option) => (
-                      <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
-                        <RadioGroupItem value={option} id={`scheduleD-${option}`} />
-                        <Label htmlFor={`scheduleD-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
+                      <div key={option} className="flex items-start space-x-3 p-3 sm:p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                        <RadioGroupItem value={option} id={`scheduleD-${option}`} className="mt-0.5" />
+                        <Label htmlFor={`scheduleD-${option}`} className="flex-1 cursor-pointer text-sm font-medium leading-relaxed">
                           {option === "Yes" ? "Yes, I have capital gains/losses" : "No capital gains/losses"}
                         </Label>
                       </div>
@@ -338,12 +338,12 @@ if (leadEmail) {
                   <RadioGroup
                     value={formData.scheduleE}
                     onValueChange={(value) => setFormData({...formData, scheduleE: value})}
-                    className="grid grid-cols-2 gap-4"
+                    className="grid gap-3"
                   >
                     {["Yes", "No"].map((option) => (
-                      <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
-                        <RadioGroupItem value={option} id={`scheduleE-${option}`} />
-                        <Label htmlFor={`scheduleE-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
+                      <div key={option} className="flex items-start space-x-3 p-3 sm:p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                        <RadioGroupItem value={option} id={`scheduleE-${option}`} className="mt-0.5" />
+                        <Label htmlFor={`scheduleE-${option}`} className="flex-1 cursor-pointer text-sm font-medium leading-relaxed">
                           {option === "Yes" ? "Yes, I have rental income" : "No rental income"}
                         </Label>
                       </div>
@@ -397,12 +397,12 @@ if (leadEmail) {
                   <RadioGroup
                     value={formData.foreignIncome}
                     onValueChange={(value) => setFormData({...formData, foreignIncome: value})}
-                    className="grid grid-cols-2 gap-4"
+                    className="grid gap-3"
                   >
                     {["Yes", "No"].map((option) => (
-                      <div key={option} className="flex items-center space-x-3 p-4 rounded-xl border border-border hover:bg-accent transition-colors">
-                        <RadioGroupItem value={option} id={`foreign-${option}`} />
-                        <Label htmlFor={`foreign-${option}`} className="flex-1 cursor-pointer text-sm font-medium">
+                      <div key={option} className="flex items-start space-x-3 p-3 sm:p-4 rounded-xl border border-border hover:bg-accent transition-colors">
+                        <RadioGroupItem value={option} id={`foreign-${option}`} className="mt-0.5" />
+                        <Label htmlFor={`foreign-${option}`} className="flex-1 cursor-pointer text-sm font-medium leading-relaxed">
                           {option === "Yes" ? "Yes, I have foreign income" : "No foreign income"}
                         </Label>
                       </div>
